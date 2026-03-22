@@ -517,6 +517,9 @@ async function showSummary() {
     document.getElementById('sum-ar-avg-wpm').textContent = avgAr;
     document.getElementById('sum-ar-avg-acc').textContent = avgAccAr + '%';
 
+    // Mark session as completed on the backend
+    api(`/sessions/${session.id}/complete`, { method: 'PATCH' }).catch(() => {});
+
     showScreen('screen-summary');
 }
 

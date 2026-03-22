@@ -36,9 +36,15 @@ export class TypingService {
   // ── Candidates ──
 
   async createCandidate(dto: CreateCandidateDto): Promise<TypingCandidate> {
-    const existing = await this.candidateRepo.findOne({
+    // Check for existing candidate by phone OR national ID
+    let existing = await this.candidateRepo.findOne({
       where: { phoneNumber: dto.phoneNumber },
     });
+    if (!existing && dto.nationalId) {
+      existing = await this.candidateRepo.findOne({
+        where: { nationalId: dto.nationalId },
+      });
+    }
     if (existing) {
       // Update name/nationalId if candidate already exists
       existing.fullName = dto.fullName;

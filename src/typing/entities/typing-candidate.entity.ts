@@ -12,7 +12,7 @@ export class TypingCandidate {
   @Column({ name: 'phone_number', length: 20, unique: true })
   phoneNumber: string;
 
-  @Column({ name: 'national_id', length: 20, nullable: true })
+  @Column({ name: 'national_id', length: 20, nullable: true, unique: true })
   nationalId: string;
 
   @CreateDateColumn({ name: 'created_at' })
