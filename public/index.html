@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Octopus Outsourcing - Typing Speed Test</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- ── Background Animation ── -->
+    <div class="bg-container" id="bg-container"></div>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <!-- SCREEN 1: Registration                                -->
+    <!-- ══════════════════════════════════════════════════════ -->
+    <div id="screen-register" class="screen active">
+        <div class="card register-card">
+            <div class="brand">
+                <div class="brand-icon">⌨️</div>
+                <h1>Typing Speed Test</h1>
+                <p class="brand-sub">Octopus Outsourcing</p>
+            </div>
+
+            <div class="form-group">
+                <label for="reg-name">Full Name <span class="required">*</span></label>
+                <input type="text" id="reg-name" placeholder="Enter your full name" autocomplete="name">
+            </div>
+            <div class="form-group">
+                <label for="reg-phone">Phone Number <span class="required">*</span></label>
+                <input type="tel" id="reg-phone" placeholder="e.g. 01012345678" autocomplete="tel">
+            </div>
+            <div class="form-group">
+                <label for="reg-natid">National ID <span class="optional">(optional)</span></label>
+                <input type="text" id="reg-natid" placeholder="14 digit national ID" maxlength="14" autocomplete="off">
+            </div>
+            <div id="reg-error" class="error-msg"></div>
+            <button id="btn-start" class="btn-primary">Start Test</button>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <!-- SCREEN 2: Typing Test                                 -->
+    <!-- ══════════════════════════════════════════════════════ -->
+    <div id="screen-test" class="screen">
+        <div class="test-header">
+            <div class="test-info">
+                <span id="test-lang-label" class="lang-badge">English</span>
+                <span id="test-trial-label" class="trial-label">Trial 1 of 3</span>
+            </div>
+            <div class="test-progress">
+                <div id="progress-bar" class="progress-fill" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <div class="test-container">
+            <div class="test-stats">
+                <div class="stat">
+                    <span class="stat-val" id="timer-display">60</span>
+                    <span class="stat-lbl">seconds</span>
+                </div>
+                <div class="stat" id="wpm-stat">
+                    <span class="stat-val" id="live-wpm">0</span>
+                    <span class="stat-lbl">WPM</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-val" id="live-accuracy">100</span>
+                    <span class="stat-lbl">accuracy %</span>
+                </div>
+            </div>
+
+            <div id="text-display" class="text-display"></div>
+
+            <div class="input-row">
+                <input type="text" id="type-input" class="type-input" placeholder="Start typing..." autocomplete="off" spellcheck="false">
+                <button id="btn-sound-toggle" class="icon-btn" title="Toggle Sound">🔊</button>
+            </div>
+        </div>
+
+        <!-- Tab switch warning overlay -->
+        <div id="tab-warning" class="tab-warning">
+            <div class="tab-warning-box">
+                <div class="warning-icon">⚠️</div>
+                <h3>Trial Voided</h3>
+                <p>You switched away from this tab. Your current trial has been voided and will restart with a new passage.</p>
+                <button id="btn-resume-after-void" class="btn-primary">Continue</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Trial Result Mini Card (between trials) ── -->
+    <div id="screen-between" class="screen">
+        <div class="card between-card">
+            <h2 id="between-title">Trial Complete</h2>
+            <div class="between-stats">
+                <div class="between-stat">
+                    <span class="between-val" id="between-wpm">0</span>
+                    <span class="between-lbl">Net WPM</span>
+                </div>
+                <div class="between-stat">
+                    <span class="between-val" id="between-acc">0%</span>
+                    <span class="between-lbl">Accuracy</span>
+                </div>
+                <div class="between-stat">
+                    <span class="between-val" id="between-words">0</span>
+                    <span class="between-lbl">Correct Words</span>
+                </div>
+            </div>
+            <div class="between-next">
+                <p id="between-next-label">Next: Arabic - Trial 1</p>
+                <div class="countdown-ring" id="countdown-ring">
+                    <span id="countdown-num">5</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <!-- SCREEN 3: Final Summary                               -->
+    <!-- ══════════════════════════════════════════════════════ -->
+    <div id="screen-summary" class="screen">
+        <div class="card summary-card">
+            <h2>Test Complete</h2>
+            <div class="summary-candidate">
+                <span id="sum-name"></span>
+                <span id="sum-phone"></span>
+                <span id="sum-natid"></span>
+            </div>
+
+            <div class="summary-grid">
+                <div class="summary-col">
+                    <h3>English</h3>
+                    <table class="summary-table">
+                        <thead><tr><th>Trial</th><th>WPM</th><th>Accuracy</th></tr></thead>
+                        <tbody id="sum-en-body"></tbody>
+                        <tfoot><tr class="avg-row"><td>Average</td><td id="sum-en-avg-wpm">-</td><td id="sum-en-avg-acc">-</td></tr></tfoot>
+                    </table>
+                </div>
+                <div class="summary-col">
+                    <h3>العربية</h3>
+                    <table class="summary-table">
+                        <thead><tr><th>Trial</th><th>WPM</th><th>Accuracy</th></tr></thead>
+                        <tbody id="sum-ar-body"></tbody>
+                        <tfoot><tr class="avg-row"><td>Average</td><td id="sum-ar-avg-wpm">-</td><td id="sum-ar-avg-acc">-</td></tr></tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <div class="summary-actions">
+                <button id="btn-download-pdf" class="btn-primary">📄 Download PDF</button>
+                <button id="btn-print" class="btn-secondary" onclick="window.print()">🖨️ Print</button>
+                <button id="btn-new-test" class="btn-secondary">🔄 New Test</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <!-- SCREEN 4: Admin Dashboard                             -->
+    <!-- ══════════════════════════════════════════════════════ -->
+    <div id="screen-admin" class="screen">
+        <div class="admin-container">
+            <div class="admin-header">
+                <h2>Admin Dashboard</h2>
+                <button id="btn-admin-back" class="btn-secondary btn-sm">← Back to Test</button>
+            </div>
+
+            <div class="admin-tabs">
+                <button class="admin-tab active" data-tab="results">Results</button>
+                <button class="admin-tab" data-tab="passages">Passages</button>
+                <button class="admin-tab" data-tab="settings">Settings</button>
+            </div>
+
+            <!-- Results Tab -->
+            <div id="tab-results" class="tab-content active">
+                <div class="admin-stats" id="admin-stats"></div>
+                <div class="admin-toolbar">
+                    <input type="text" id="admin-search" placeholder="Search by name, phone, or national ID..." class="admin-search">
+                    <button id="btn-export-csv" class="btn-primary btn-sm">📥 Export CSV</button>
+                </div>
+                <div class="admin-table-wrap">
+                    <table class="admin-table" id="results-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Phone</th>
+                                <th>National ID</th>
+                                <th>Date</th>
+                                <th>EN WPM</th>
+                                <th>AR WPM</th>
+                                <th>EN Acc%</th>
+                                <th>AR Acc%</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="results-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Passages Tab -->
+            <div id="tab-passages" class="tab-content">
+                <div class="passage-tabs">
+                    <button class="passage-tab active" data-lang="en">English</button>
+                    <button class="passage-tab" data-lang="ar">العربية</button>
+                </div>
+                <button id="btn-add-passage" class="btn-primary btn-sm" style="margin: 15px 0">+ Add Passage</button>
+                <div id="passages-list" class="passages-list"></div>
+            </div>
+
+            <!-- Settings Tab -->
+            <div id="tab-settings" class="tab-content">
+                <div class="settings-form">
+                    <div class="form-group">
+                        <label>Trial Duration (seconds)</label>
+                        <select id="cfg-duration">
+                            <option value="30">30 seconds</option>
+                            <option value="60">60 seconds</option>
+                            <option value="90">90 seconds</option>
+                            <option value="120">120 seconds</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Trials per Language</label>
+                        <select id="cfg-trials">
+                            <option value="1">1 trial</option>
+                            <option value="2">2 trials</option>
+                            <option value="3">3 trials</option>
+                        </select>
+                    </div>
+                    <div class="form-group toggle-group">
+                        <label>Show Live WPM to Candidate</label>
+                        <input type="checkbox" id="cfg-show-wpm" checked>
+                    </div>
+                    <div class="form-group toggle-group">
+                        <label>Enable Sound Effects</label>
+                        <input type="checkbox" id="cfg-sounds" checked>
+                    </div>
+                    <div class="form-group toggle-group">
+                        <label>Void Trial on Tab Switch</label>
+                        <input type="checkbox" id="cfg-void-tab" checked>
+                    </div>
+                    <button id="btn-save-config" class="btn-primary">Save Settings</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Password Modal -->
+    <div id="admin-gate" class="modal-overlay">
+        <div class="modal-box">
+            <h3>Admin Access</h3>
+            <input type="password" id="admin-pass" placeholder="Enter admin password" class="admin-search">
+            <div id="admin-pass-error" class="error-msg"></div>
+            <div class="modal-actions">
+                <button id="btn-admin-login" class="btn-primary">Enter</button>
+                <button id="btn-admin-cancel" class="btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Passage Edit Modal -->
+    <div id="passage-modal" class="modal-overlay">
+        <div class="modal-box">
+            <h3 id="passage-modal-title">Add Passage</h3>
+            <div class="form-group">
+                <label>Language</label>
+                <select id="passage-lang-select">
+                    <option value="en">English</option>
+                    <option value="ar">Arabic</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Text Content</label>
+                <textarea id="passage-content" rows="5" placeholder="Enter the passage text..."></textarea>
+            </div>
+            <div id="passage-preview" class="passage-preview" style="display:none">
+                <label>Cleaned Preview (Arabic):</label>
+                <p id="passage-preview-text"></p>
+            </div>
+            <div class="modal-actions">
+                <button id="btn-passage-save" class="btn-primary">Save</button>
+                <button id="btn-passage-cancel" class="btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer with admin link -->
+    <div class="footer">
+        <a href="#" id="admin-link">Admin</a>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,52 @@
+services:
+  # ── PostgreSQL Database ──
+  db:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: typing_speed
+      POSTGRES_USER: typing
+      POSTGRES_PASSWORD: typing123
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U typing -d typing_speed"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ── NestJS Backend ──
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: typing
+      DB_PASS: typing123
+      DB_NAME: typing_speed
+      NODE_ENV: production
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+
+  # ── Nginx (Frontend + Reverse Proxy) ──
+  nginx:
+    image: nginx:alpine
+    restart: unless-stopped
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./public:/usr/share/nginx/html:ro
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:
