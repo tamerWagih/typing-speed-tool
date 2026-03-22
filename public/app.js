@@ -222,7 +222,6 @@ function startTrial() {
     typeInput.style.direction = dir;
     typeInput.style.fontFamily = fontFamily;
     typeInput.style.textAlign = dir === 'rtl' ? 'right' : 'left';
-    textDisplay.scrollTop = 0;
 
     // Build word pool from ALL active passages (not just the trial passage) to avoid repetition
     const lang = trial.language;
@@ -271,6 +270,9 @@ function startTrial() {
     document.getElementById('tab-warning').classList.remove('visible');
     // Mark test as actively running for anti-cheat
     window._testActive = true;
+    // Reset scroll positions AFTER content is rebuilt and screen is visible
+    textDisplay.scrollTop = 0;
+    window.scrollTo(0, 0);
     setTimeout(() => typeInput.focus(), 150);
 }
 
@@ -337,13 +339,15 @@ document.getElementById('type-input').addEventListener('input', function () {
 });
 
 // Prevent paste, copy, cut, drop, and right-click on the test area
-const typeInput = document.getElementById('type-input');
-['paste', 'copy', 'cut', 'drop'].forEach(evt => {
-    typeInput.addEventListener(evt, e => e.preventDefault());
-});
-typeInput.addEventListener('contextmenu', e => e.preventDefault());
-// Also prevent right-click on the text display
-document.getElementById('text-display').addEventListener('contextmenu', e => e.preventDefault());
+(function() {
+    const ti = document.getElementById('type-input');
+    ['paste', 'copy', 'cut', 'drop'].forEach(evt => {
+        ti.addEventListener(evt, e => e.preventDefault());
+    });
+    ti.addEventListener('contextmenu', e => e.preventDefault());
+    // Also prevent right-click on the text display
+    document.getElementById('text-display').addEventListener('contextmenu', e => e.preventDefault());
+})();
 
 function updateTimer() {
     timeLeft--;
@@ -531,16 +535,7 @@ function avg(arr, key) {
     return Math.round(arr.reduce((s, r) => s + r[key], 0) / arr.length);
 }
 
-// New test
-document.getElementById('btn-new-test').addEventListener('click', () => {
-    candidate = null; session = null; results = [];
-    document.getElementById('reg-name').value = '';
-    document.getElementById('reg-phone').value = '';
-    document.getElementById('reg-natid').value = '';
-    document.getElementById('btn-start').disabled = false;
-    document.getElementById('btn-start').textContent = 'Start Test';
-    showScreen('screen-register');
-});
+// (New Test button removed - candidates see thank-you message instead)
 
 // ══════════════════════════════════════════════════════
 // ADMIN DASHBOARD
