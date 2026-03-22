@@ -36,21 +36,45 @@ export class TypingService {
   // ── Candidates ──
 
   async createCandidate(dto: CreateCandidateDto): Promise<TypingCandidate> {
-    // Check for existing candidate by phone OR national ID
-    let existing = await this.candidateRepo.findOne({
+    // Check for existing candidate by phone
+    const byPhone = await this.candidateRepo.findOne({
       where: { phoneNumber: dto.phoneNumber },
     });
-    if (!existing && dto.nationalId) {
-      existing = await this.candidateRepo.findOne({
-        where: { nationalId: dto.nationalId },
-      });
+    // Check for existing candidate by national ID
+    const byNatId = dto.nationalId
+      ? await this.candidateRepo.findOne({ where: { nationalId: dto.nationalId } })
+      : null;
+
+    // Mismatch: phone belongs to one candidate, national ID to another
+    if (byPhone && byNatId && byPhone.id !== byNatId.id) {
+      throw new BadRequestException(
+        'Phone number and National ID belong to different candidates. Please verify your information.',
+      );
     }
+
+    // Phone exists but national ID doesn't match
+    if (byPhone && dto.nationalId && byPhone.nationalId && byPhone.nationalId !== dto.nationalId) {
+      throw new BadRequestException(
+        'This phone number is registered with a different National ID.',
+      );
+    }
+
+    // National ID exists but phone doesn't match
+    if (byNatId && byNatId.phoneNumber !== dto.phoneNumber) {
+      throw new BadRequestException(
+        'This National ID is registered with a different phone number.',
+      );
+    }
+
+    // Existing candidate found — update name if needed
+    const existing = byPhone || byNatId;
     if (existing) {
-      // Update name/nationalId if candidate already exists
       existing.fullName = dto.fullName;
       if (dto.nationalId) existing.nationalId = dto.nationalId;
       return this.candidateRepo.save(existing);
     }
+
+    // New candidate
     const candidate = this.candidateRepo.create(dto);
     return this.candidateRepo.save(candidate);
   }

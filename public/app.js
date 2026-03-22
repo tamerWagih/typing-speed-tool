@@ -183,6 +183,13 @@ document.getElementById('btn-start').addEventListener('click', async () => {
 
         currentTrialIndex = 0;
         results = [];
+
+        // Persist test state so refresh doesn't lose progress
+        sessionStorage.setItem('testState', JSON.stringify({
+            candidate, session, trialQueue, allActivePassages,
+            currentTrialIndex: 0, results: [],
+        }));
+
         startTrial();
     } catch (e) {
         errEl.textContent = e.message || 'Failed to start. Please try again.';
@@ -520,6 +527,9 @@ async function showSummary() {
     // Mark session as completed on the backend
     api(`/sessions/${session.id}/complete`, { method: 'PATCH' }).catch(() => {});
 
+    // Clear persisted test state — test is done
+    sessionStorage.removeItem('testState');
+
     showScreen('screen-summary');
 }
 
@@ -559,9 +569,9 @@ document.getElementById('admin-link').addEventListener('click', (e) => {
 
 document.getElementById('btn-admin-login').addEventListener('click', () => {
     const pass = document.getElementById('admin-pass').value;
-    // Check against hardcoded fallback (will be replaced by env-based check in future)
     if (pass === 'octopus2026') {
         adminGate.classList.remove('visible');
+        sessionStorage.setItem('adminAuth', '1');
         openAdmin();
     } else {
         document.getElementById('admin-pass-error').textContent = 'Incorrect password.';
@@ -571,7 +581,10 @@ document.getElementById('admin-pass').addEventListener('keydown', e => {
     if (e.key === 'Enter') document.getElementById('btn-admin-login').click();
 });
 document.getElementById('btn-admin-cancel').addEventListener('click', () => adminGate.classList.remove('visible'));
-document.getElementById('btn-admin-back').addEventListener('click', () => showScreen('screen-register'));
+document.getElementById('btn-admin-back').addEventListener('click', () => {
+    sessionStorage.removeItem('adminAuth');
+    showScreen('screen-register');
+});
 
 // Admin tabs
 document.querySelectorAll('.admin-tab').forEach(tab => {
@@ -826,4 +839,25 @@ document.getElementById('btn-save-config').addEventListener('click', async () =>
 // ══════════════════════════════════════════════════════
 applyTheme();
 document.getElementById('btn-theme')?.addEventListener('click', toggleTheme);
-showScreen('screen-register');
+
+// Restore admin session if previously authenticated
+if (sessionStorage.getItem('adminAuth') === '1') {
+    openAdmin();
+} else if (sessionStorage.getItem('testState')) {
+    // Restore candidate test session after refresh
+    try {
+        const state = JSON.parse(sessionStorage.getItem('testState'));
+        candidate = state.candidate;
+        session = state.session;
+        trialQueue = state.trialQueue;
+        allActivePassages = state.allActivePassages;
+        currentTrialIndex = state.currentTrialIndex || 0;
+        results = state.results || [];
+        loadConfig().then(() => startTrial());
+    } catch (e) {
+        sessionStorage.removeItem('testState');
+        showScreen('screen-register');
+    }
+} else {
+    showScreen('screen-register');
+}
