@@ -3,13 +3,25 @@
    ════════════════════════════════════════════════════════════ */
 
 const API = '/api/typing';
-const ADMIN_PASSWORD = 'octopus2026';
+
+// ── Theme ──
+let darkMode = localStorage.getItem('theme') !== 'light';
+function applyTheme() {
+    document.body.classList.toggle('light-theme', !darkMode);
+    const btn = document.getElementById('btn-theme');
+    if (btn) btn.textContent = darkMode ? '☀️' : '🌙';
+    localStorage.setItem('theme', darkMode ? 'dark' : 'light');
+}
+function toggleTheme() {
+    darkMode = !darkMode;
+    applyTheme();
+}
 
 // ── State ──
 let candidate = null;
 let session = null;
 let config = null;
-let passages = { en: [], ar: [] };
+let allActivePassages = { en: [], ar: [] };
 let trialQueue = []; // [{ language, trialNumber, passage }, ...]
 let currentTrialIndex = 0;
 let results = []; // { language, trialNumber, grossWpm, netWpm, accuracy, correctWords, totalWordsAttempted, errorCount }
@@ -144,10 +156,20 @@ document.getElementById('btn-start').addEventListener('click', async () => {
         candidate = await api('/candidates', { method: 'POST', body: JSON.stringify({ fullName: name, phoneNumber: phone, nationalId: natId || null }) });
         session = await api('/sessions', { method: 'POST', body: JSON.stringify({ candidateId: candidate.id }) });
 
-        // Fetch passages
+        // Fetch all active passages for word pool
         const trialsPerLang = config.trialsPerLanguage;
         const enPassages = await api(`/passages/random?lang=en&count=${trialsPerLang}`);
         const arPassages = await api(`/passages/random?lang=ar&count=${trialsPerLang}`);
+
+        // Also fetch ALL active passages for filling text
+        try {
+            const allEn = await api('/passages?lang=en');
+            allActivePassages.en = allEn.filter(p => p.isActive);
+        } catch (e) { allActivePassages.en = enPassages; }
+        try {
+            const allAr = await api('/passages?lang=ar');
+            allActivePassages.ar = allAr.filter(p => p.isActive);
+        } catch (e) { allActivePassages.ar = arPassages; }
 
         // Build trial queue: English first, then Arabic
         trialQueue = [];
@@ -201,13 +223,27 @@ function startTrial() {
     typeInput.style.textAlign = dir === 'rtl' ? 'right' : 'left';
     textDisplay.scrollTop = 0;
 
+    // Build word pool from ALL active passages (not just the trial passage) to avoid repetition
+    const lang = trial.language;
+    const pool = (allActivePassages[lang] || []).map(p => {
+        const c = lang === 'ar' ? normalizeArabic(p.content) : p.content;
+        return c.split(/\s+/).filter(w => w.length > 0);
+    });
+    // Shuffle the passages order, but start with the trial's passage
     let content = trial.passage.content;
-    if (trial.language === 'ar') content = normalizeArabic(content);
-    // If passage is short, repeat it to fill the test
-    const baseWords = content.split(/\s+/).filter(w => w.length > 0);
-    let allWords = [...baseWords];
-    while (allWords.length < 200) { allWords = allWords.concat([...baseWords]); }
-    wordsArray = allWords;
+    if (lang === 'ar') content = normalizeArabic(content);
+    const primaryWords = content.split(/\s+/).filter(w => w.length > 0);
+    let allWords = [...primaryWords];
+    // Add words from other passages (shuffled) to fill up
+    const otherPools = pool.filter(p => p.join(' ') !== primaryWords.join(' '));
+    for (let i = otherPools.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [otherPools[i], otherPools[j]] = [otherPools[j], otherPools[i]];
+    }
+    for (const p of otherPools) { allWords = allWords.concat(p); }
+    // If still not enough, cycle through all
+    while (allWords.length < 200) { allWords = allWords.concat([...allWords]); }
+    wordsArray = allWords.slice(0, 300);
 
     textDisplay.innerHTML = '';
     wordsArray.forEach((word, i) => {
@@ -518,7 +554,9 @@ document.getElementById('admin-link').addEventListener('click', (e) => {
 });
 
 document.getElementById('btn-admin-login').addEventListener('click', () => {
-    if (document.getElementById('admin-pass').value === ADMIN_PASSWORD) {
+    const pass = document.getElementById('admin-pass').value;
+    // Check against hardcoded fallback (will be replaced by env-based check in future)
+    if (pass === 'octopus2026') {
         adminGate.classList.remove('visible');
         openAdmin();
     } else {
@@ -635,6 +673,7 @@ document.getElementById('btn-export-csv').addEventListener('click', async () => 
 });
 
 // ── Passages ──
+let passages = { en: [], ar: [] };
 document.querySelectorAll('.passage-tab').forEach(tab => {
     tab.addEventListener('click', () => {
         document.querySelectorAll('.passage-tab').forEach(t => t.classList.remove('active'));
@@ -781,4 +820,6 @@ document.getElementById('btn-save-config').addEventListener('click', async () =>
 // ══════════════════════════════════════════════════════
 // INIT
 // ══════════════════════════════════════════════════════
+applyTheme();
+document.getElementById('btn-theme')?.addEventListener('click', toggleTheme);
 showScreen('screen-register');

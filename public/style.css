@@ -317,9 +317,25 @@ textarea { resize: vertical; min-height: 100px; }
 /* ── Footer ── */
 .footer {
     position: fixed; bottom: 0; width: 100%; text-align: center; padding: 12px;
+    display: flex; justify-content: center; align-items: center; gap: 16px;
 }
 .footer a { color: var(--text-dim); font-size: 12px; text-decoration: none; transition: color 0.2s; }
 .footer a:hover { color: var(--accent); }
+.theme-btn {
+    background: none; border: 1px solid var(--border); border-radius: 50%;
+    width: 32px; height: 32px; cursor: pointer; font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+}
+.theme-btn:hover { border-color: var(--accent); transform: scale(1.1); }
+
+/* ── Modal fix: full-width inputs ── */
+.modal-box input[type="password"],
+.modal-box input[type="text"],
+.modal-box select,
+.modal-box textarea {
+    width: 100%;
+}
 
 /* ── Print Styles ── */
 @media print {
@@ -340,4 +356,48 @@ textarea { resize: vertical; min-height: 100px; }
     .test-stats { gap: 25px; }
     .stat-val { font-size: 28px; }
     .text-display { font-size: 20px; line-height: 38px; }
+}
+
+/* ══════════════════════════════════════════════════════════
+   LIGHT THEME
+   ══════════════════════════════════════════════════════════ */
+body.light-theme {
+    --bg: #f0f2f5;
+    --bg-card: rgba(255, 255, 255, 0.92);
+    --bg-input: rgba(0, 0, 0, 0.04);
+    --border: rgba(0, 0, 0, 0.1);
+    --border-focus: #0078D7;
+    --accent: #0065b8;
+    --accent-glow: rgba(0, 101, 184, 0.15);
+    --correct: #059669;
+    --incorrect: #dc2626;
+    --text: #1a1a2e;
+    --text-muted: #6b7280;
+    --text-dim: #9ca3af;
+}
+body.light-theme .bg-container::before {
+    background: radial-gradient(ellipse at 30% 20%, rgba(0,101,184,0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 80%, rgba(5,150,105,0.04) 0%, transparent 50%);
+}
+body.light-theme .card {
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+}
+body.light-theme .admin-table th {
+    background: rgba(0, 0, 0, 0.03);
+}
+body.light-theme .expanded-row td {
+    background: rgba(0, 0, 0, 0.02);
+}
+body.light-theme .tab-warning {
+    background: rgba(255, 255, 255, 0.85);
+}
+body.light-theme .modal-overlay {
+    background: rgba(0, 0, 0, 0.3); backdrop-filter: blur(8px);
+}
+body.light-theme .admin-table tr:hover td {
+    background: rgba(0, 101, 184, 0.04);
+}
+body.light-theme select {
+    background: var(--bg-input);
+    color: var(--text);
 }
