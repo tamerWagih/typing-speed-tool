@@ -221,8 +221,13 @@ textarea { resize: vertical; min-height: 100px; }
 .summary-table th { color: var(--text-muted); font-weight: 500; font-size: 12px; text-transform: uppercase; }
 .summary-table td { font-variant-numeric: tabular-nums; }
 .avg-row td { font-weight: 700; color: var(--accent); border-top: 2px solid var(--accent); border-bottom: none; }
-.summary-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
-.summary-actions .btn-primary, .summary-actions .btn-secondary { width: auto; padding: 12px 24px; }
+.summary-thankyou {
+    text-align: center; padding: 20px 0 10px;
+    border-top: 1px solid var(--border); margin-top: 10px;
+}
+.thankyou-icon { font-size: 36px; margin-bottom: 8px; }
+.thankyou-text { font-size: 18px; font-weight: 600; margin-bottom: 6px; }
+.thankyou-sub { font-size: 14px; color: var(--text-muted); }
 
 /* ── Admin ── */
 .admin-container { width: 100%; animation: fadeUp 0.3s ease-out; }
@@ -286,7 +291,7 @@ textarea { resize: vertical; min-height: 100px; }
 .passage-item.disabled { opacity: 0.4; }
 
 /* Settings */
-.settings-form { max-width: 400px; }
+.settings-form { max-width: 460px; margin: 0 auto; }
 .toggle-group { flex-direction: row; align-items: center; justify-content: space-between; }
 .toggle-group input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--accent); }
 

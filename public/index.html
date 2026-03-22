@@ -31,7 +31,7 @@
                 <input type="tel" id="reg-phone" placeholder="e.g. 01012345678" autocomplete="tel">
             </div>
             <div class="form-group">
-                <label for="reg-natid">National ID <span class="optional">(optional)</span></label>
+                <label for="reg-natid">National ID <span class="required">*</span></label>
                 <input type="text" id="reg-natid" placeholder="14 digit national ID" maxlength="14" autocomplete="off">
             </div>
             <div id="reg-error" class="error-msg"></div>
@@ -146,10 +146,10 @@
                 </div>
             </div>
 
-            <div class="summary-actions">
-                <button id="btn-download-pdf" class="btn-primary">📄 Download PDF</button>
-                <button id="btn-print" class="btn-secondary" onclick="window.print()">🖨️ Print</button>
-                <button id="btn-new-test" class="btn-secondary">🔄 New Test</button>
+            <div class="summary-thankyou">
+                <p class="thankyou-icon">✅</p>
+                <p class="thankyou-text">Thank you! Your results have been recorded.</p>
+                <p class="thankyou-sub">Please contact your HR representative for further steps.</p>
             </div>
         </div>
     </div>

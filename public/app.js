@@ -146,6 +146,7 @@ document.getElementById('btn-start').addEventListener('click', async () => {
 
     if (!name) { errEl.textContent = 'Please enter your full name.'; return; }
     if (!phone) { errEl.textContent = 'Please enter your phone number.'; return; }
+    if (!natId) { errEl.textContent = 'Please enter the national ID.'; return; }
     errEl.textContent = '';
 
     try {
@@ -153,7 +154,7 @@ document.getElementById('btn-start').addEventListener('click', async () => {
         document.getElementById('btn-start').textContent = 'Loading...';
 
         await loadConfig();
-        candidate = await api('/candidates', { method: 'POST', body: JSON.stringify({ fullName: name, phoneNumber: phone, nationalId: natId || null }) });
+        candidate = await api('/candidates', { method: 'POST', body: JSON.stringify({ fullName: name, phoneNumber: phone, nationalId: natId }) });
         session = await api('/sessions', { method: 'POST', body: JSON.stringify({ candidateId: candidate.id }) });
 
         // Fetch all active passages for word pool
@@ -268,6 +269,8 @@ function startTrial() {
     typeInput.disabled = false;
     showScreen('screen-test');
     document.getElementById('tab-warning').classList.remove('visible');
+    // Mark test as actively running for anti-cheat
+    window._testActive = true;
     setTimeout(() => typeInput.focus(), 150);
 }
 
@@ -333,8 +336,14 @@ document.getElementById('type-input').addEventListener('input', function () {
     }
 });
 
-// Prevent paste
-document.getElementById('type-input').addEventListener('paste', e => e.preventDefault());
+// Prevent paste, copy, cut, drop, and right-click on the test area
+const typeInput = document.getElementById('type-input');
+['paste', 'copy', 'cut', 'drop'].forEach(evt => {
+    typeInput.addEventListener(evt, e => e.preventDefault());
+});
+typeInput.addEventListener('contextmenu', e => e.preventDefault());
+// Also prevent right-click on the text display
+document.getElementById('text-display').addEventListener('contextmenu', e => e.preventDefault());
 
 function updateTimer() {
     timeLeft--;
@@ -400,6 +409,7 @@ function endTrial() {
     if (currentTrialIndex < trialQueue.length) {
         showBetween(result);
     } else {
+        window._testActive = false; // Anti-cheat: test is done
         showSummary();
     }
 }
@@ -432,7 +442,8 @@ function showBetween(result) {
 // TAB SWITCH DETECTION
 // ══════════════════════════════════════════════════════
 document.addEventListener('visibilitychange', () => {
-    if (document.hidden && isTyping) {
+    // Trigger if test screen is active (even before first keystroke)
+    if (document.hidden && window._testActive) {
         tabSwitchCount++;
         if (config && config.voidOnTabSwitch) {
             clearInterval(timerInterval);
@@ -501,11 +512,6 @@ async function showSummary() {
     document.getElementById('sum-en-avg-acc').textContent = avgAccEn + '%';
     document.getElementById('sum-ar-avg-wpm').textContent = avgAr;
     document.getElementById('sum-ar-avg-acc').textContent = avgAccAr + '%';
-
-    // PDF button
-    document.getElementById('btn-download-pdf').onclick = () => {
-        window.open(API + `/sessions/${session.id}/pdf`, '_blank');
-    };
 
     showScreen('screen-summary');
 }

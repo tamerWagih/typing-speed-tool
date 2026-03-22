@@ -12,9 +12,9 @@ export class CreateCandidateDto {
   phoneNumber: string;
 
   @IsString()
-  @IsOptional()
+  @IsNotEmpty()
   @MaxLength(20)
-  nationalId?: string;
+  nationalId: string;
 }
 
 export class CreateSessionDto {
