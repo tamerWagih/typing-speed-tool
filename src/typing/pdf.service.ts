@@ -1,5 +1,6 @@
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const PDFDocument = require('pdfkit');
+import * as path from 'path';
 import { TypingSession } from './entities/typing-session.entity';
 import { TypingTrial } from './entities/typing-trial.entity';
 
@@ -32,18 +33,26 @@ export function generateSessionPdf(session: TypingSession): PDFKit.PDFDocument {
     .filter((t) => t.language === 'ar' && !t.wasVoided)
     .sort((a, b) => a.trialNumber - b.trialNumber);
 
-  // ── Header ──
+  // ── Header with Logo ──
   doc.rect(0, 0, 595.28, 90).fill(DARK_BG);
-  doc
-    .font('Helvetica-Bold')
-    .fontSize(24)
-    .fillColor(BRAND_BLUE)
-    .text('OCTOPUS OUTSOURCING', 50, 25, { width: pageWidth });
+
+  // Embed Octopus logo
+  try {
+    const logoPath = path.join(__dirname, 'assets', 'logo.png');
+    doc.image(logoPath, 50, 15, { height: 40 });
+  } catch (e) {
+    // Fallback to text if logo not found
+    doc
+      .font('Helvetica-Bold')
+      .fontSize(24)
+      .fillColor(BRAND_BLUE)
+      .text('OCTOPUS OUTSOURCING', 50, 25, { width: pageWidth });
+  }
   doc
     .font('Helvetica')
     .fontSize(12)
     .fillColor(TEXT_LIGHT)
-    .text('Typing Speed Assessment Report', 50, 55, { width: pageWidth });
+    .text('Typing Speed Assessment Report', 50, 62, { width: pageWidth });
 
   // ── Candidate Info Box ──
   const infoY = 110;
@@ -130,7 +139,7 @@ export function generateSessionPdf(session: TypingSession): PDFKit.PDFDocument {
 
   // ── Arabic Results Table ──
   tableY += 20;
-  tableY = drawTrialTable(doc, 'Arabic Trials (العربية)', arTrials, 50, tableY, pageWidth);
+  tableY = drawTrialTable(doc, 'Arabic Trials', arTrials, 50, tableY, pageWidth);
 
   // ── Footer ──
   const footerY = 800;

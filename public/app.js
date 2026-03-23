@@ -653,7 +653,6 @@ async function loadAdminResults(search = '') {
                 <td>${row.avgEnAccuracy}%</td><td>${row.avgArAccuracy}%</td>
                 <td>
                     <button class="icon-btn pdf-btn" title="Download PDF" data-session="${row.sessionId}">📄</button>
-                    <button class="icon-btn print-btn" title="Print Report" data-session="${row.sessionId}">🖨️</button>
                     <button class="expand-btn" data-session="${row.sessionId}">▼</button>
                 </td>
             `;
@@ -694,12 +693,6 @@ async function loadAdminResults(search = '') {
                 a.click();
             });
 
-            // Print PDF
-            tr.querySelector('.print-btn').addEventListener('click', function(e) {
-                e.stopPropagation();
-                const sid = this.dataset.session;
-                window.open(API + `/sessions/${sid}/pdf`, '_blank');
-            });
         });
     } catch (e) { /* ok */ }
 }
