@@ -574,34 +574,34 @@ function avg(arr, key) {
 // ══════════════════════════════════════════════════════
 // ADMIN DASHBOARD
 // ══════════════════════════════════════════════════════
-const adminGate = document.getElementById('admin-gate');
 const passageModal = document.getElementById('passage-modal');
 let currentPassageLang = 'en';
 let editingPassageId = null;
 
-// Admin link
-document.getElementById('admin-link').addEventListener('click', (e) => {
-    e.preventDefault();
-    adminGate.classList.add('visible');
-    document.getElementById('admin-pass').value = '';
-    document.getElementById('admin-pass-error').textContent = '';
-    document.getElementById('admin-pass').focus();
+// Registration tab switching
+document.querySelectorAll('.reg-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+        document.querySelectorAll('.reg-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.reg-panel').forEach(p => p.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById(tab.dataset.panel).classList.add('active');
+    });
 });
 
-document.getElementById('btn-admin-login').addEventListener('click', () => {
-    const pass = document.getElementById('admin-pass').value;
+// Inline admin login
+document.getElementById('btn-admin-login-inline').addEventListener('click', () => {
+    const pass = document.getElementById('admin-pass-inline').value;
     if (pass === 'octopus2026') {
-        adminGate.classList.remove('visible');
         sessionStorage.setItem('adminAuth', '1');
         openAdmin();
     } else {
-        document.getElementById('admin-pass-error').textContent = 'Incorrect password.';
+        document.getElementById('admin-inline-error').textContent = 'Incorrect password.';
     }
 });
-document.getElementById('admin-pass').addEventListener('keydown', e => {
-    if (e.key === 'Enter') document.getElementById('btn-admin-login').click();
+document.getElementById('admin-pass-inline').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('btn-admin-login-inline').click();
 });
-document.getElementById('btn-admin-cancel').addEventListener('click', () => adminGate.classList.remove('visible'));
+
 document.getElementById('btn-admin-back').addEventListener('click', () => {
     sessionStorage.removeItem('adminAuth');
     showScreen('screen-register');
@@ -644,14 +644,67 @@ async function loadAdminStats() {
 
 // ── Admin Results ──
 let searchTimeout;
+let currentPage = 1;
+const PAGE_SIZE = 20;
+let currentSearch = '';
+let totalResults = 0;
+
 document.getElementById('admin-search').addEventListener('input', (e) => {
     clearTimeout(searchTimeout);
-    searchTimeout = setTimeout(() => loadAdminResults(e.target.value), 400);
+    searchTimeout = setTimeout(() => {
+        currentSearch = e.target.value;
+        currentPage = 1;
+        loadAdminResults();
+    }, 400);
 });
 
-async function loadAdminResults(search = '') {
+document.getElementById('page-prev').addEventListener('click', () => {
+    if (currentPage > 1) { currentPage--; loadAdminResults(); }
+});
+document.getElementById('page-next').addEventListener('click', () => {
+    const totalPages = Math.ceil(totalResults / PAGE_SIZE);
+    if (currentPage < totalPages) { currentPage++; loadAdminResults(); }
+});
+
+function renderPageNumbers(totalPages) {
+    const container = document.getElementById('page-numbers');
+    container.innerHTML = '';
+    const pages = [];
+    // Always show: first, last, current ±2
+    for (let i = 1; i <= totalPages; i++) {
+        if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+            pages.push(i);
+        }
+    }
+    let last = 0;
+    pages.forEach(p => {
+        if (p - last > 1) {
+            const dot = document.createElement('span');
+            dot.className = 'page-btn ellipsis';
+            dot.textContent = '…';
+            container.appendChild(dot);
+        }
+        const btn = document.createElement('button');
+        btn.className = 'page-btn' + (p === currentPage ? ' active' : '');
+        btn.textContent = p;
+        btn.addEventListener('click', () => { currentPage = p; loadAdminResults(); });
+        container.appendChild(btn);
+        last = p;
+    });
+}
+
+async function loadAdminResults() {
     try {
-        const data = await api(`/admin/results?search=${encodeURIComponent(search)}&limit=100`);
+        const data = await api(`/admin/results?search=${encodeURIComponent(currentSearch)}&limit=${PAGE_SIZE}&page=${currentPage}`);
+        totalResults = data.total;
+        const totalPages = Math.max(1, Math.ceil(totalResults / PAGE_SIZE));
+
+        // Update pagination controls
+        document.getElementById('page-prev').disabled = currentPage <= 1;
+        document.getElementById('page-next').disabled = currentPage >= totalPages;
+        document.getElementById('page-info').textContent = `${totalResults} results`;
+        renderPageNumbers(totalPages);
+
         const tbody = document.getElementById('results-body');
         tbody.innerHTML = '';
         if (data.data.length === 0) {

@@ -86,19 +86,13 @@ export function generateSessionPdf(session: TypingSession): PDFKit.PDFDocument {
 
   doc
     .font('Helvetica-Bold')
-    .text('National ID:', col1, row2)
-    .font('Helvetica')
-    .text(session.candidate.nationalId || 'N/A', col1 + 70, row2);
-
-  doc
-    .font('Helvetica-Bold')
-    .text('Date:', col2, row2)
+    .text('Date:', col1, row2)
     .font('Helvetica')
     .text(
       session.completedAt
         ? new Date(session.completedAt).toLocaleDateString('en-GB')
         : 'N/A',
-      col2 + 50,
+      col1 + 70,
       row2,
     );
 
