@@ -73,9 +73,15 @@ export class TypingController implements OnModuleInit {
 
   @Get('sessions/:id/pdf')
   async getPdf(@Param('id') id: string, @Res() res: Response) {
-    // PDF generation will be added in Task 6
     const session = await this.typingService.getSession(id);
-    res.json({ message: 'PDF endpoint ready', session });
+    const { generateSessionPdf } = await import('./pdf.service');
+    const doc = generateSessionPdf(session);
+
+    const safeName = session.candidate.fullName.replace(/[^a-zA-Z0-9\u0600-\u06FF ]/g, '').replace(/\s+/g, '_');
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="Typing_Report_${safeName}.pdf"`);
+    doc.pipe(res);
+    doc.end();
   }
 
   // ── Config ──

@@ -286,30 +286,34 @@ export class TypingService {
         .filter((t) => t.language === 'ar')
         .sort((a, b) => a.trialNumber - b.trialNumber);
 
+      // Exclude voided trials from averages
+      const enValid = enTrials.filter((t) => !t.wasVoided);
+      const arValid = arTrials.filter((t) => !t.wasVoided);
+
       const avgEn =
-        enTrials.length > 0
+        enValid.length > 0
           ? Math.round(
-              enTrials.reduce((sum, t) => sum + t.netWpm, 0) / enTrials.length,
+              enValid.reduce((sum, t) => sum + t.netWpm, 0) / enValid.length,
             )
           : 0;
       const avgAr =
-        arTrials.length > 0
+        arValid.length > 0
           ? Math.round(
-              arTrials.reduce((sum, t) => sum + t.netWpm, 0) / arTrials.length,
+              arValid.reduce((sum, t) => sum + t.netWpm, 0) / arValid.length,
             )
           : 0;
       const avgAccEn =
-        enTrials.length > 0
+        enValid.length > 0
           ? Math.round(
-              enTrials.reduce((sum, t) => sum + t.accuracy, 0) /
-                enTrials.length,
+              enValid.reduce((sum, t) => sum + t.accuracy, 0) /
+                enValid.length,
             )
           : 0;
       const avgAccAr =
-        arTrials.length > 0
+        arValid.length > 0
           ? Math.round(
-              arTrials.reduce((sum, t) => sum + t.accuracy, 0) /
-                arTrials.length,
+              arValid.reduce((sum, t) => sum + t.accuracy, 0) /
+                arValid.length,
             )
           : 0;
 
@@ -344,6 +348,7 @@ export class TypingService {
       .addSelect('ROUND(AVG(t.accuracy))', 'avgAccuracy')
       .innerJoin('t.session', 's')
       .where('s.status = :status', { status: 'completed' })
+      .andWhere('t.was_voided = false')
       .groupBy('t.language')
       .getRawMany();
 
