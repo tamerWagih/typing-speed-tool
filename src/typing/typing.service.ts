@@ -431,30 +431,29 @@ export class TypingService {
       { language: 'en', content: 'artificial intelligence will change the future of work' },
       { language: 'en', content: 'taking small breaks during work increases productivity' },
       { language: 'en', content: 'a good night of sleep is vital for mental clarity' },
-      // Arabic passages from v0.7 (already normalized)
-      { language: 'ar', content: 'الماء ضروري لبقاء الكايناة الحية على قيد الحياة' },
+      // Arabic passages from v0.7 (store original text — normalization happens at comparison time)
+      { language: 'ar', content: 'الماء ضروري لبقاء الكائنات الحية على قيد الحياة' },
       { language: 'ar', content: 'السماء صافية والجو جميل في هذا المساء' },
-      { language: 'ar', content: 'القهوة مشروب مفضل لدي الكثيرين في الصباح الباكر' },
+      { language: 'ar', content: 'القهوة مشروب مفضل لدى الكثيرين في الصباح الباكر' },
       { language: 'ar', content: 'الرياضة تساعد على تحسين الصحة النفسية والجسدية' },
-      { language: 'ar', content: 'الهواء النقي يعطي طاقة ايجابية ونشاطا للجسم' },
-      { language: 'ar', content: 'القراءة توسع المدارك وتنمي الخيال لدي الاطفال' },
-      { language: 'ar', content: 'العمل الجماعي يحقق نتايج افضل بكثير من الفردي' },
-      { language: 'ar', content: 'البرمجة لغة العصر وتفتح ابوابا كثيرة للمستقبل' },
-      { language: 'ar', content: 'التكنولوجيا الحديثة جعلت التواصل بين الناس اسهل' },
+      { language: 'ar', content: 'الهواء النقي يعطي طاقة إيجابية ونشاطا للجسم' },
+      { language: 'ar', content: 'القراءة توسع المدارك وتنمي الخيال لدى الأطفال' },
+      { language: 'ar', content: 'العمل الجماعي يحقق نتائج أفضل بكثير من الفردي' },
+      { language: 'ar', content: 'البرمجة لغة العصر وتفتح أبوابا كثيرة للمستقبل' },
+      { language: 'ar', content: 'التكنولوجيا الحديثة جعلت التواصل بين الناس أسهل' },
       { language: 'ar', content: 'شرب الماء بكثرة ضروري للحفاظ على نشاط الجسم' },
       { language: 'ar', content: 'النوم المبكر يساعد على التركيز خلال ساعات النهار' },
-      { language: 'ar', content: 'الاستماع للموسيقي الهادية يقلل من التوتر اليومي' },
+      { language: 'ar', content: 'الاستماع للموسيقى الهادئة يقلل من التوتر اليومي' },
       { language: 'ar', content: 'النجاح يتطلب الصبر والاستمرارية في بذل الجهد' },
       { language: 'ar', content: 'الذكاء الاصطناعي يطور مجالات الطب والهندسة بسرعة' },
       { language: 'ar', content: 'تعلم لغة جديدة ينشط العقل ويحسن الذاكرة' },
     ];
 
     for (const p of passages) {
-      const content =
-        p.language === 'ar' ? normalizeArabic(p.content) : p.content;
-      const wordCount = content.split(/\s+/).filter((w) => w.length > 0).length;
+      // Store passages as-is — normalization only happens at input comparison time
+      const wordCount = p.content.split(/\s+/).filter((w) => w.length > 0).length;
       await this.passageRepo.save(
-        this.passageRepo.create({ ...p, content, wordCount }),
+        this.passageRepo.create({ ...p, wordCount }),
       );
     }
 
