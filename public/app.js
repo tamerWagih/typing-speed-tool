@@ -766,15 +766,14 @@ async function loadAdminResults() {
     } catch (e) { showToast('Failed to load results', 'error'); }
 }
 
-// CSV Export
+// Excel Export
 document.getElementById('btn-export-csv').addEventListener('click', async () => {
     try {
         const res = await fetch(API + '/admin/results/export');
-        const csv = await res.text();
-        const blob = new Blob([csv], { type: 'text/csv' });
+        const blob = await res.blob();
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.href = url; a.download = 'typing-results.csv'; a.click();
+        a.href = url; a.download = 'typing-results.xlsx'; a.click();
         URL.revokeObjectURL(url);
     } catch (e) { showToast('Export failed: ' + e.message, 'error'); }
 });

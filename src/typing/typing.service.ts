@@ -359,58 +359,101 @@ export class TypingService {
     };
   }
 
-  async exportCsv(): Promise<string> {
+  async exportExcel(): Promise<Buffer> {
+    const ExcelJS = await import('exceljs');
     const sessions = await this.sessionRepo.find({
       where: { status: 'completed' },
       relations: ['candidate', 'trials'],
       order: { completedAt: 'DESC' },
     });
 
-    const headers = [
-      'Name',
-      'Phone',
-      'National ID',
-      'Date',
-      'Language',
-      'Trial',
-      'Net WPM',
-      'Gross WPM',
-      'Accuracy %',
-      'Correct Words',
-      'Total Words',
-      'Errors',
-      'Duration (s)',
-      'Tab Switches',
+    const workbook = new ExcelJS.Workbook();
+
+    // ── Sheet 1: Summary (one row per candidate session) ──
+    const summary = workbook.addWorksheet('Summary');
+    summary.columns = [
+      { header: 'Name', key: 'name', width: 22 },
+      { header: 'Phone', key: 'phone', width: 15 },
+      { header: 'National ID', key: 'natId', width: 18 },
+      { header: 'Date', key: 'date', width: 14 },
+      { header: 'Avg EN WPM', key: 'enWpm', width: 13 },
+      { header: 'Avg AR WPM', key: 'arWpm', width: 13 },
+      { header: 'Avg EN Accuracy %', key: 'enAcc', width: 18 },
+      { header: 'Avg AR Accuracy %', key: 'arAcc', width: 18 },
     ];
 
-    const rows = sessions.flatMap((s) =>
-      s.trials
-        .sort(
-          (a, b) =>
-            a.language.localeCompare(b.language) ||
-            a.trialNumber - b.trialNumber,
-        )
-        .map((t) =>
-          [
-            `"${s.candidate.fullName}"`,
-            s.candidate.phoneNumber,
-            s.candidate.nationalId || '',
-            s.completedAt ? s.completedAt.toISOString().split('T')[0] : '',
-            t.language.toUpperCase(),
-            t.trialNumber,
-            t.netWpm,
-            t.grossWpm,
-            t.accuracy,
-            t.correctWords,
-            t.totalWordsAttempted,
-            t.errorCount,
-            t.testDuration,
-            t.tabSwitches,
-          ].join(','),
-        ),
-    );
+    for (const s of sessions) {
+      const enValid = s.trials.filter((t) => t.language === 'en' && !t.wasVoided);
+      const arValid = s.trials.filter((t) => t.language === 'ar' && !t.wasVoided);
+      const avg = (arr: any[], key: string) =>
+        arr.length > 0 ? Math.round(arr.reduce((sum, t) => sum + t[key], 0) / arr.length) : 0;
 
-    return [headers.join(','), ...rows].join('\n');
+      summary.addRow({
+        name: s.candidate.fullName,
+        phone: s.candidate.phoneNumber,
+        natId: s.candidate.nationalId || '',
+        date: s.completedAt ? s.completedAt.toISOString().split('T')[0] : '',
+        enWpm: avg(enValid, 'netWpm'),
+        arWpm: avg(arValid, 'netWpm'),
+        enAcc: avg(enValid, 'accuracy'),
+        arAcc: avg(arValid, 'accuracy'),
+      });
+    }
+
+    // ── Sheet 2: Detailed (one row per trial) ──
+    const detailed = workbook.addWorksheet('Detailed');
+    detailed.columns = [
+      { header: 'Name', key: 'name', width: 22 },
+      { header: 'Phone', key: 'phone', width: 15 },
+      { header: 'National ID', key: 'natId', width: 18 },
+      { header: 'Date', key: 'date', width: 14 },
+      { header: 'Language', key: 'lang', width: 10 },
+      { header: 'Trial', key: 'trial', width: 8 },
+      { header: 'Net WPM', key: 'netWpm', width: 11 },
+      { header: 'Gross WPM', key: 'grossWpm', width: 12 },
+      { header: 'Accuracy %', key: 'accuracy', width: 12 },
+      { header: 'Correct Words', key: 'correct', width: 14 },
+      { header: 'Total Words', key: 'total', width: 13 },
+      { header: 'Errors', key: 'errors', width: 9 },
+      { header: 'Duration (s)', key: 'duration', width: 13 },
+      { header: 'Tab Switches', key: 'tabSw', width: 13 },
+      { header: 'Voided', key: 'voided', width: 9 },
+    ];
+
+    for (const s of sessions) {
+      const sorted = [...s.trials].sort(
+        (a, b) => a.language.localeCompare(b.language) || a.trialNumber - b.trialNumber,
+      );
+      for (const t of sorted) {
+        detailed.addRow({
+          name: s.candidate.fullName,
+          phone: s.candidate.phoneNumber,
+          natId: s.candidate.nationalId || '',
+          date: s.completedAt ? s.completedAt.toISOString().split('T')[0] : '',
+          lang: t.language.toUpperCase(),
+          trial: t.trialNumber,
+          netWpm: t.netWpm,
+          grossWpm: t.grossWpm,
+          accuracy: t.accuracy,
+          correct: t.correctWords,
+          total: t.totalWordsAttempted,
+          errors: t.errorCount,
+          duration: t.testDuration,
+          tabSw: t.tabSwitches,
+          voided: t.wasVoided ? 'Yes' : '',
+        });
+      }
+    }
+
+    // Style headers on both sheets
+    [summary, detailed].forEach((ws) => {
+      const headerRow = ws.getRow(1);
+      headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+      headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0078D7' } };
+      headerRow.alignment = { horizontal: 'center' };
+    });
+
+    return Buffer.from(await workbook.xlsx.writeBuffer());
   }
 
   // ── Seed ──

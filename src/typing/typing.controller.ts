@@ -150,11 +150,13 @@ export class TypingController implements OnModuleInit {
   }
 
   @Get('admin/results/export')
-  @Header('Content-Type', 'text/csv')
-  @Header('Content-Disposition', 'attachment; filename=typing-results.csv')
-  async exportCsv(@Res() res: Response) {
-    const csv = await this.typingService.exportCsv();
-    res.send(csv);
+  async exportExcel(@Res() res: Response) {
+    const buffer = await this.typingService.exportExcel();
+    res.set({
+      'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'Content-Disposition': 'attachment; filename=typing-results.xlsx',
+    });
+    res.send(buffer);
   }
 
   @Get('admin/stats')
