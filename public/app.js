@@ -373,7 +373,7 @@ function updateTimer() {
     if (timeLeft <= 0) endTrial();
 }
 
-function endTrial() {
+async function endTrial() {
     clearInterval(timerInterval);
     document.getElementById('type-input').disabled = true;
     isTyping = false;
@@ -410,17 +410,33 @@ function endTrial() {
 
     results.push(result);
 
-    // Save to backend
-    api(`/sessions/${session.id}/trials`, { method: 'POST', body: JSON.stringify(result) }).catch(() => {});
+    // Save to backend — MUST complete before moving on
+    try {
+        await api(`/sessions/${session.id}/trials`, { method: 'POST', body: JSON.stringify(result) });
+    } catch (e) {
+        console.error('Failed to save trial:', e);
+    }
 
     playSuccess();
 
     // Next trial or summary
     currentTrialIndex++;
+
+    // Update sessionStorage with progress
+    const testState = sessionStorage.getItem('testState');
+    if (testState) {
+        try {
+            const state = JSON.parse(testState);
+            state.currentTrialIndex = currentTrialIndex;
+            state.results = results;
+            sessionStorage.setItem('testState', JSON.stringify(state));
+        } catch (e) { /* ok */ }
+    }
+
     if (currentTrialIndex < trialQueue.length) {
         showBetween(result);
     } else {
-        window._testActive = false; // Anti-cheat: test is done
+        window._testActive = false;
         showSummary();
     }
 }
@@ -481,24 +497,12 @@ document.getElementById('btn-resume-after-void').addEventListener('click', () =>
     startTrial();
 });
 
-// ══════════════════════════════════════════════════════
-// SOUND TOGGLE
-// ══════════════════════════════════════════════════════
-function updateSoundButton() {
-    document.getElementById('btn-sound-toggle').textContent = soundEnabled ? '🔊' : '🔇';
-}
-document.getElementById('btn-sound-toggle').addEventListener('click', () => {
-    soundEnabled = !soundEnabled;
-    updateSoundButton();
-});
+// Sound is controlled via admin config only (no candidate toggle)
 
 // ══════════════════════════════════════════════════════
 // SUMMARY
 // ══════════════════════════════════════════════════════
 async function showSummary() {
-    // Complete session
-    try { await api(`/sessions/${session.id}/complete`, { method: 'PATCH' }); } catch (e) { /* ok */ }
-
     // Update progress bar to 100%
     document.getElementById('progress-bar').style.width = '100%';
 
@@ -524,8 +528,12 @@ async function showSummary() {
     document.getElementById('sum-ar-avg-wpm').textContent = avgAr;
     document.getElementById('sum-ar-avg-acc').textContent = avgAccAr + '%';
 
-    // Mark session as completed on the backend
-    api(`/sessions/${session.id}/complete`, { method: 'PATCH' }).catch(() => {});
+    // Mark session as completed (trials already saved at this point)
+    try {
+        await api(`/sessions/${session.id}/complete`, { method: 'PATCH' });
+    } catch (e) {
+        console.error('Failed to complete session:', e);
+    }
 
     // Clear persisted test state — test is done
     sessionStorage.removeItem('testState');
@@ -829,7 +837,6 @@ document.getElementById('btn-save-config').addEventListener('click', async () =>
             }),
         });
         soundEnabled = config.enableSoundEffects;
-        updateSoundButton();
         alert('Settings saved!');
     } catch (e) { alert('Failed to save: ' + e.message); }
 });
