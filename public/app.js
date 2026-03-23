@@ -17,6 +17,20 @@ function toggleTheme() {
     applyTheme();
 }
 
+// ── Toast Notifications ──
+function showToast(message, type = 'error') {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+    container.appendChild(toast);
+    const duration = type === 'error' ? 4000 : 3000;
+    setTimeout(() => {
+        toast.classList.add('fade-out');
+        setTimeout(() => toast.remove(), 300);
+    }, duration);
+}
+
 // ── State ──
 let candidate = null;
 let session = null;
@@ -625,7 +639,7 @@ async function loadAdminStats() {
             <div class="stat-card"><div class="sc-val">${enStat.avgWpm || 0} / ${arStat.avgWpm || 0}</div><div class="sc-lbl">Avg WPM (EN/AR)</div></div>
             <div class="stat-card"><div class="sc-val">${enStat.avgAccuracy || 0}% / ${arStat.avgAccuracy || 0}%</div><div class="sc-lbl">Avg Accuracy</div></div>
         `;
-    } catch (e) { /* ok */ }
+    } catch (e) { showToast('Failed to load stats', 'error'); }
 }
 
 // ── Admin Results ──
@@ -694,7 +708,7 @@ async function loadAdminResults(search = '') {
             });
 
         });
-    } catch (e) { /* ok */ }
+    } catch (e) { showToast('Failed to load results', 'error'); }
 }
 
 // CSV Export
@@ -707,7 +721,7 @@ document.getElementById('btn-export-csv').addEventListener('click', async () => 
         const a = document.createElement('a');
         a.href = url; a.download = 'typing-results.csv'; a.click();
         URL.revokeObjectURL(url);
-    } catch (e) { alert('Export failed'); }
+    } catch (e) { showToast('Export failed: ' + e.message, 'error'); }
 });
 
 // ── Passages ──
@@ -727,7 +741,7 @@ async function loadPassages() {
         passages.en = all.filter(p => p.language === 'en');
         passages.ar = all.filter(p => p.language === 'ar');
         renderPassages();
-    } catch (e) { /* ok */ }
+    } catch (e) { showToast('Failed to load passages', 'error'); }
 }
 
 function renderPassages() {
@@ -808,7 +822,7 @@ document.getElementById('btn-passage-save').addEventListener('click', async () =
         }
         passageModal.classList.remove('visible');
         await loadPassages();
-    } catch (e) { alert(e.message); }
+    } catch (e) { showToast(e.message, 'error'); }
 });
 
 document.getElementById('btn-passage-cancel').addEventListener('click', () => passageModal.classList.remove('visible'));
@@ -817,7 +831,7 @@ window.togglePassageActive = async (id) => {
     try {
         await api(`/passages/${id}/toggle`, { method: 'PATCH' });
         await loadPassages();
-    } catch (e) { alert(e.message); }
+    } catch (e) { showToast(e.message, 'error'); }
 };
 
 window.deletePassageItem = async (id) => {
@@ -825,7 +839,7 @@ window.deletePassageItem = async (id) => {
     try {
         await api(`/passages/${id}`, { method: 'DELETE' });
         await loadPassages();
-    } catch (e) { alert(e.message); }
+    } catch (e) { showToast(e.message, 'error'); }
 };
 
 // ── Settings ──
@@ -850,8 +864,8 @@ document.getElementById('btn-save-config').addEventListener('click', async () =>
             }),
         });
         soundEnabled = config.enableSoundEffects;
-        alert('Settings saved!');
-    } catch (e) { alert('Failed to save: ' + e.message); }
+        showToast('Settings saved!', 'success');
+    } catch (e) { showToast('Failed to save: ' + e.message, 'error'); }
 });
 
 // ══════════════════════════════════════════════════════
