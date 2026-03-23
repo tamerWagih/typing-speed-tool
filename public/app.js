@@ -135,7 +135,6 @@ async function loadConfig() {
         config = { trialDurationSeconds: 60, trialsPerLanguage: 3, showLiveWpm: true, enableSoundEffects: true, voidOnTabSwitch: true };
     }
     soundEnabled = config.enableSoundEffects;
-    updateSoundButton();
 }
 
 document.getElementById('btn-start').addEventListener('click', async () => {
