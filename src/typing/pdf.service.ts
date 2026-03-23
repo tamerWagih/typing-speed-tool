@@ -142,7 +142,7 @@ export function generateSessionPdf(session: TypingSession): PDFKit.PDFDocument {
   tableY = drawTrialTable(doc, 'Arabic Trials', arTrials, 50, tableY, pageWidth);
 
   // ── Footer ──
-  const footerY = 800;
+  const footerY = Math.min(tableY + 40, 780);
   doc
     .moveTo(50, footerY)
     .lineTo(50 + pageWidth, footerY)
