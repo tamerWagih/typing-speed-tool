@@ -472,14 +472,8 @@ body.light-theme select {
 }
 
 /* ── Screen Transitions ── */
-.screen {
-    transition: opacity 0.25s ease, transform 0.25s ease;
-}
-.screen:not(.active) {
-    opacity: 0; transform: translateY(8px);
-}
 .screen.active {
-    opacity: 1; transform: translateY(0);
+    animation: fadeUp 0.3s ease-out;
 }
 
 /* ── Focus Rings ── */
@@ -518,7 +512,7 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-
     .stat-card { padding: 12px; }
     .stat-card .sc-val { font-size: 1.2rem; }
     .stat-card .sc-lbl { font-size: 0.65rem; }
-    .admin-table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .admin-table-wrapper, .tab-panel { overflow-x: auto; -webkit-overflow-scrolling: touch; }
     .admin-table { min-width: 650px; }
     .tabs { flex-wrap: wrap; gap: 4px; }
     .tabs button { font-size: 0.8rem; padding: 8px 12px; }
