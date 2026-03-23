@@ -622,8 +622,8 @@ async function loadAdminStats() {
         el.innerHTML = `
             <div class="stat-card"><div class="sc-val">${stats.totalCandidates}</div><div class="sc-lbl">Candidates</div></div>
             <div class="stat-card"><div class="sc-val">${stats.totalSessions}</div><div class="sc-lbl">Sessions</div></div>
-            <div class="stat-card"><div class="sc-val">${enStat.avgwpm || 0} / ${arStat.avgwpm || 0}</div><div class="sc-lbl">Avg WPM (EN/AR)</div></div>
-            <div class="stat-card"><div class="sc-val">${enStat.avgaccuracy || 0}% / ${arStat.avgaccuracy || 0}%</div><div class="sc-lbl">Avg Accuracy</div></div>
+            <div class="stat-card"><div class="sc-val">${enStat.avgWpm || 0} / ${arStat.avgWpm || 0}</div><div class="sc-lbl">Avg WPM (EN/AR)</div></div>
+            <div class="stat-card"><div class="sc-val">${enStat.avgAccuracy || 0}% / ${arStat.avgAccuracy || 0}%</div><div class="sc-lbl">Avg Accuracy</div></div>
         `;
     } catch (e) { /* ok */ }
 }
