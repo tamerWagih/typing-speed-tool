@@ -231,6 +231,7 @@
                     <button class="passage-tab" data-lang="ar">العربية</button>
                 </div>
                 <button id="btn-add-passage" class="btn-primary btn-sm" style="margin: 15px 0">+ Add Passage</button>
+                <button id="btn-reset-passages" class="btn-secondary btn-sm" style="margin: 15px 0 15px 8px">↺ Restore Defaults</button>
                 <div id="passages-list" class="passages-list"></div>
             </div>
 
@@ -268,7 +269,10 @@
                         <label>Void Trial on Tab Switch</label>
                         <input type="checkbox" id="cfg-void-tab" checked>
                     </div>
-                    <button id="btn-save-config" class="btn-primary">Save Settings</button>
+                    <div style="display:flex;gap:8px;margin-top:8px">
+                        <button id="btn-save-config" class="btn-primary">Save Settings</button>
+                        <button id="btn-reset-config" class="btn-secondary">↺ Restore Defaults</button>
+                    </div>
                 </div>
             </div>
         </div>

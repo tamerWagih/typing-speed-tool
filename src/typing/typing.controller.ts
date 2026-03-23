@@ -161,4 +161,14 @@ export class TypingController implements OnModuleInit {
   getStats() {
     return this.typingService.getStats();
   }
+
+  @Post('admin/reset-passages')
+  resetPassages() {
+    return this.typingService.resetPassages();
+  }
+
+  @Post('admin/reset-config')
+  resetConfig() {
+    return this.typingService.resetConfig();
+  }
 }

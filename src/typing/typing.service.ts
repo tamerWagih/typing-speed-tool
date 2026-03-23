@@ -465,4 +465,55 @@ export class TypingService {
     // Seed default config
     await this.getConfig();
   }
+
+  async resetPassages(): Promise<void> {
+    await this.passageRepo.clear();
+    // Force re-seed by calling seedPassages after clearing
+    const passages = [
+      { language: 'en', content: 'the quick brown fox jumps over the lazy dog easily' },
+      { language: 'en', content: 'learning to code is like learning a new language' },
+      { language: 'en', content: 'coffee is a popular drink enjoyed by millions every day' },
+      { language: 'en', content: 'listening to music can improve your mood and focus' },
+      { language: 'en', content: 'reading books expands your mind and vocabulary greatly' },
+      { language: 'en', content: 'technology evolves faster than we can fully understand it' },
+      { language: 'en', content: 'traveling allows you to experience different cultures and foods' },
+      { language: 'en', content: 'consistent practice is the only true secret to success' },
+      { language: 'en', content: 'drinking enough water is essential for your daily health' },
+      { language: 'en', content: 'the internet connects people from all around the world' },
+      { language: 'en', content: 'typing fast requires muscle memory and relaxed fingers' },
+      { language: 'en', content: 'nature has a way of healing the human spirit completely' },
+      { language: 'en', content: 'artificial intelligence will change the future of work' },
+      { language: 'en', content: 'taking small breaks during work increases productivity' },
+      { language: 'en', content: 'a good night of sleep is vital for mental clarity' },
+      { language: 'ar', content: 'الماء ضروري لبقاء الكائنات الحية على قيد الحياة' },
+      { language: 'ar', content: 'السماء صافية والجو جميل في هذا المساء' },
+      { language: 'ar', content: 'القهوة مشروب مفضل لدى الكثيرين في الصباح الباكر' },
+      { language: 'ar', content: 'الرياضة تساعد على تحسين الصحة النفسية والجسدية' },
+      { language: 'ar', content: 'الهواء النقي يعطي طاقة إيجابية ونشاطا للجسم' },
+      { language: 'ar', content: 'القراءة توسع المدارك وتنمي الخيال لدى الأطفال' },
+      { language: 'ar', content: 'العمل الجماعي يحقق نتائج أفضل بكثير من الفردي' },
+      { language: 'ar', content: 'البرمجة لغة العصر وتفتح أبوابا كثيرة للمستقبل' },
+      { language: 'ar', content: 'التكنولوجيا الحديثة جعلت التواصل بين الناس أسهل' },
+      { language: 'ar', content: 'شرب الماء بكثرة ضروري للحفاظ على نشاط الجسم' },
+      { language: 'ar', content: 'النوم المبكر يساعد على التركيز خلال ساعات النهار' },
+      { language: 'ar', content: 'الاستماع للموسيقى الهادئة يقلل من التوتر اليومي' },
+      { language: 'ar', content: 'النجاح يتطلب الصبر والاستمرارية في بذل الجهد' },
+      { language: 'ar', content: 'الذكاء الاصطناعي يطور مجالات الطب والهندسة بسرعة' },
+      { language: 'ar', content: 'تعلم لغة جديدة ينشط العقل ويحسن الذاكرة' },
+    ];
+    for (const p of passages) {
+      const wordCount = p.content.split(/\s+/).filter((w) => w.length > 0).length;
+      await this.passageRepo.save(this.passageRepo.create({ ...p, wordCount }));
+    }
+  }
+
+  async resetConfig(): Promise<TypingConfig> {
+    let config = await this.getConfig();
+    config.trialDurationSeconds = 60;
+    config.trialsPerLanguage = 3;
+    config.showLiveWpm = true;
+    config.enableSoundEffects = true;
+    config.voidOnTabSwitch = true;
+    return this.configRepo.save(config);
+  }
 }

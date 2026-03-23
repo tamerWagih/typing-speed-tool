@@ -923,6 +923,27 @@ document.getElementById('btn-save-config').addEventListener('click', async () =>
     } catch (e) { showToast('Failed to save: ' + e.message, 'error'); }
 });
 
+// Restore Defaults – Passages
+document.getElementById('btn-reset-passages').addEventListener('click', async () => {
+    if (!confirm('Reset all passages to defaults? This will delete any custom passages.')) return;
+    try {
+        await api('/admin/reset-passages', { method: 'POST' });
+        showToast('Passages restored to defaults!', 'success');
+        await loadPassages();
+    } catch (e) { showToast('Failed to reset passages: ' + e.message, 'error'); }
+});
+
+// Restore Defaults – Settings
+document.getElementById('btn-reset-config').addEventListener('click', async () => {
+    if (!confirm('Reset all settings to defaults?')) return;
+    try {
+        config = await api('/admin/reset-config', { method: 'POST' });
+        soundEnabled = config.enableSoundEffects;
+        loadSettingsForm();
+        showToast('Settings restored to defaults!', 'success');
+    } catch (e) { showToast('Failed to reset settings: ' + e.message, 'error'); }
+});
+
 // ══════════════════════════════════════════════════════
 // INIT
 // ══════════════════════════════════════════════════════
