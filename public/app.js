@@ -591,13 +591,21 @@ document.querySelectorAll('.reg-tab').forEach(tab => {
 });
 
 // Inline admin login
-document.getElementById('btn-admin-login-inline').addEventListener('click', () => {
+document.getElementById('btn-admin-login-inline').addEventListener('click', async () => {
     const pass = document.getElementById('admin-pass-inline').value;
-    if (pass === 'octopus2026') {
-        sessionStorage.setItem('adminAuth', '1');
-        openAdmin();
-    } else {
-        document.getElementById('admin-inline-error').textContent = 'Incorrect password.';
+    try {
+        const result = await api('/admin/verify-password', {
+            method: 'POST',
+            body: JSON.stringify({ password: pass }),
+        });
+        if (result.valid) {
+            sessionStorage.setItem('adminAuth', '1');
+            openAdmin();
+        } else {
+            document.getElementById('admin-inline-error').textContent = 'Incorrect password.';
+        }
+    } catch (e) {
+        document.getElementById('admin-inline-error').textContent = 'Login failed: ' + e.message;
     }
 });
 document.getElementById('admin-pass-inline').addEventListener('keydown', e => {

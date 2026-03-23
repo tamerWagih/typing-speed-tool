@@ -1,0 +1,96 @@
+# Production Docker Compose
+# Usage: docker-compose -f docker-compose.prod.yml --env-file .env.production up -d
+
+services:
+  # ── PostgreSQL Database ──
+  db:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    # No exposed ports — only accessible from backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  # ── NestJS Backend ──
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_USER: ${DB_USER}
+      DB_PASS: ${DB_PASS}
+      DB_NAME: ${DB_NAME}
+      NODE_ENV: production
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+    depends_on:
+      db:
+        condition: service_healthy
+    # No exposed ports — only accessible from nginx
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+
+  # ── Nginx (Frontend + Reverse Proxy) ──
+  nginx:
+    image: nginx:alpine
+    restart: always
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./public:/usr/share/nginx/html:ro
+    ports:
+      - "80:80"
+      # Uncomment for SSL:
+      # - "443:443"
+      # Add SSL cert volumes:
+      # - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - backend
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+
+  # ── PostgreSQL Daily Backup ──
+  db-backup:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      PGHOST: db
+      PGUSER: ${POSTGRES_USER}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: ${POSTGRES_DB}
+    volumes:
+      - ./backups:/backups
+    depends_on:
+      db:
+        condition: service_healthy
+    entrypoint: >
+      sh -c 'while true; do
+        pg_dump -Fc > /backups/typing_$$(date +%Y%m%d_%H%M%S).dump;
+        echo "[backup] $$(date) — done";
+        find /backups -name "typing_*.dump" -mtime +7 -delete;
+        sleep 86400;
+      done'
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+
+volumes:
+  pgdata:

@@ -136,6 +136,15 @@ export class TypingController implements OnModuleInit {
 
   // ── Admin ──
 
+  @Post('admin/verify-password')
+  verifyPassword(@Body() body: { password: string }) {
+    const adminPass = process.env.ADMIN_PASSWORD || 'octopus2026';
+    if (body.password === adminPass) {
+      return { valid: true };
+    }
+    return { valid: false };
+  }
+
   @Get('admin/results')
   getAllResults(
     @Query('search') search?: string,
