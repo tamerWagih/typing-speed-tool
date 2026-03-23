@@ -138,7 +138,9 @@ async function api(path, options = {}) {
         throw new Error(err.message || 'Request failed');
     }
     if (res.headers.get('content-type')?.includes('text/csv')) return res.text();
-    return res.json();
+    const text = await res.text();
+    if (!text) return null;
+    return JSON.parse(text);
 }
 
 // ══════════════════════════════════════════════════════
