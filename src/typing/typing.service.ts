@@ -467,8 +467,15 @@ export class TypingService {
   }
 
   async resetPassages(): Promise<void> {
-    await this.passageRepo.clear();
-    // Force re-seed by calling seedPassages after clearing
+    // Nullify passage references in trials to avoid FK constraint
+    await this.trialRepo
+      .createQueryBuilder()
+      .update()
+      .set({ passageId: null } as any)
+      .where('passage_id IS NOT NULL')
+      .execute();
+    // Delete all passages
+    await this.passageRepo.createQueryBuilder().delete().from(TypingPassage).execute();
     const passages = [
       { language: 'en', content: 'the quick brown fox jumps over the lazy dog easily' },
       { language: 'en', content: 'learning to code is like learning a new language' },

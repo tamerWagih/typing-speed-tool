@@ -54,7 +54,7 @@ export class TypingTrial {
   @JoinColumn({ name: 'session_id' })
   session: TypingSession;
 
-  @ManyToOne(() => TypingPassage, { nullable: true })
+  @ManyToOne(() => TypingPassage, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'passage_id' })
   passage: TypingPassage;
 }
