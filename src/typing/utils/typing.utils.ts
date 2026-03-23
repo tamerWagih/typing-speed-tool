@@ -68,7 +68,7 @@ export function calculateResults(
   const grossWpm = minutes > 0 ? Math.round(totalCharsTyped / 5 / minutes) : 0;
 
   // Net WPM: gross WPM minus penalty for errors
-  const netWpm = Math.max(0, Math.round(grossWpm - errorCount / minutes));
+  const netWpm = minutes > 0 ? Math.max(0, Math.round(grossWpm - errorCount / minutes)) : 0;
 
   // Accuracy: word-level
   const accuracy =
