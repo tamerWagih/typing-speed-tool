@@ -142,7 +142,7 @@ export function generateSessionPdf(session: TypingSession): PDFKit.PDFDocument {
   tableY = drawTrialTable(doc, 'Arabic Trials', arTrials, 50, tableY, pageWidth);
 
   // ── Footer ──
-  const footerY = tableY > 760 ? tableY + 20 : 790;
+  const footerY = tableY > 740 ? tableY + 15 : 770;
   doc
     .moveTo(50, footerY)
     .lineTo(50 + pageWidth, footerY)
@@ -157,7 +157,7 @@ export function generateSessionPdf(session: TypingSession): PDFKit.PDFDocument {
       `Generated on ${new Date().toLocaleDateString('en-GB')} at ${new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })} • Octopus Outsourcing © ${new Date().getFullYear()}`,
       50,
       footerY + 8,
-      { width: pageWidth, align: 'center' },
+      { width: pageWidth, align: 'center', lineBreak: false },
     );
 
   return doc;
